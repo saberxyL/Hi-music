@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"], // 与 Vite 配置一致
+      "@assets/*": ["src/assets/*"]
+    }
+  }
+}
