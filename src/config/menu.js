@@ -36,6 +36,13 @@ export const systemMenuTree = {
       url: '/musician',
       name: '音乐人',
       icon: 'icon-musician'
+    },
+    {
+      id: 6,
+      parent_id: null,
+      url: '/login',
+      name: '登录',
+      icon: 'icon-login'
     }
   ]
 }
