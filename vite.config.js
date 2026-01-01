@@ -32,14 +32,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 8080,
       open: false,
-      hmr: true
-      // proxy: {
-      //   '/api': {
-      //     target: 'http://localhost:3000', // 网易云API端口
-      //     changeOrigin: true,
-      //     rewrite: path => path.replace(/^\/api/, '')
-      //   }
-      // }
+      hmr: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000', // 网易云API端口
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/api/, '')
+        }
+      }
     },
     build: {
       outDir: 'dist',
@@ -48,7 +48,7 @@ export default defineConfig(({ mode }) => {
     css: {
       preprocessorOptions: {
         scss: {
-          importers: ['@assets/styles/resize.scss']
+          api: 'modern-compiler'
         }
       },
       postcss: {
