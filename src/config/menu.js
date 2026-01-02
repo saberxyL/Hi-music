@@ -1,3 +1,11 @@
+// 页面类型枚举
+export const PageEnum = {
+  STANDALONE: 'standalone', // 纯独立页面
+  EMBEDDED: 'embedded', // 嵌入子页面
+  TAB: 'tab', // 标签页子页面
+  FULLSCREEN: 'fullscreen' // 全屏专用页
+}
+
 export const discoverMenuTree = {
   message: '',
   data: [
@@ -6,7 +14,24 @@ export const discoverMenuTree = {
       parent_id: null,
       url: '/discover/recommend',
       name: '推荐',
-      icon: 'icon-recommend'
+      icon: 'icon-recommend',
+      pageType: PageEnum.EMBEDDED
+    },
+    {
+      id: 22,
+      parent_id: null,
+      url: '/discover/playlist',
+      name: '歌单',
+      icon: 'icon-playlist',
+      pageType: PageEnum.EMBEDDED
+    },
+    {
+      id: 23,
+      parent_id: null,
+      url: '/discover/artist',
+      name: '歌手',
+      icon: 'icon-artist',
+      pageType: PageEnum.EMBEDDED
     }
   ],
   children: []
@@ -17,47 +42,53 @@ export const systemMenuTree = {
   message: '',
   data: [
     {
+      id: 0,
+      parent_id: null,
+      url: '/layout',
+      name: '布局页',
+      icon: 'icon-layout',
+      pageType: PageEnum.STANDALONE
+    },
+    {
       id: 1,
       parent_id: null,
       url: '/home',
       name: '首页',
-      icon: 'icon-home'
+      icon: 'icon-home',
+      pageType: PageEnum.EMBEDDED
     },
     {
       id: 2,
       parent_id: null,
-      url: '/discover',
-      name: '发现音乐',
-      icon: 'icon-discover',
-      children: discoverMenuTree.data
+      url: '/login',
+      name: '登录',
+      icon: 'icon-login',
+      pageType: PageEnum.STANDALONE
     },
     {
       id: 3,
       parent_id: null,
-      url: '/my-music',
-      name: '我的音乐',
-      icon: 'icon-mymusic'
+      url: '/settings',
+      name: '设置',
+      icon: 'icon-settings',
+      pageType: PageEnum.STANDALONE
     },
     {
       id: 4,
       parent_id: null,
-      url: '/follow',
-      name: '关注',
-      icon: 'icon-follow'
+      url: '/discover',
+      name: '发现音乐',
+      icon: 'icon-discover',
+      pageType: PageEnum.EMBEDDED,
+      children: discoverMenuTree.data
     },
     {
       id: 5,
       parent_id: null,
-      url: '/musician',
-      name: '音乐人',
-      icon: 'icon-musician'
-    },
-    {
-      id: 6,
-      parent_id: null,
-      url: '/login',
-      name: '登录',
-      icon: 'icon-login'
+      url: '/toplist',
+      name: '排行榜',
+      icon: 'icon-toplist',
+      pageType: PageEnum.EMBEDDED
     }
   ]
 }
@@ -122,7 +153,8 @@ export function generateRoutesFromList(list) {
       component: importComponent(item.url),
       meta: {
         title: item.name,
-        icon: item.icon
+        icon: item.icon,
+        pageType: item.pageType || PageEnum.EMBEDDED // 默认为 EMBEDDED
       }
     }
 
