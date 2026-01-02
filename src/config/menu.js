@@ -6,6 +6,7 @@ export const PageEnum = {
   FULLSCREEN: 'fullscreen' // 全屏专用页
 }
 
+// 发现音乐菜单树
 export const discoverMenuTree = {
   message: '',
   data: [
@@ -20,21 +21,12 @@ export const discoverMenuTree = {
     {
       id: 22,
       parent_id: null,
-      url: '/discover/playlist',
-      name: '歌单',
-      icon: 'icon-playlist',
-      pageType: PageEnum.EMBEDDED
-    },
-    {
-      id: 23,
-      parent_id: null,
-      url: '/discover/artist',
+      url: '/discover/singer',
       name: '歌手',
-      icon: 'icon-artist',
+      icon: 'icon-singer',
       pageType: PageEnum.EMBEDDED
     }
-  ],
-  children: []
+  ]
 }
 
 // 系统菜单树
@@ -89,6 +81,22 @@ export const systemMenuTree = {
       name: '排行榜',
       icon: 'icon-toplist',
       pageType: PageEnum.EMBEDDED
+    },
+    {
+      id: 6,
+      parent_id: null,
+      url: '/recent-play',
+      name: '最近播放',
+      icon: 'icon-recent-play',
+      pageType: PageEnum.EMBEDDED
+    },
+    {
+      id: 7,
+      parent_id: null,
+      url: '/user-center',
+      name: '个人中心',
+      icon: 'icon-user-center',
+      pageType: PageEnum.STANDALONE
     }
   ]
 }

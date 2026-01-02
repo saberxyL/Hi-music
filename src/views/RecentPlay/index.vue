@@ -1,5 +1,5 @@
 <template>
   <div>
-    <h1>推荐</h1>
+    <div>最近播放</div>
   </div>
 </template>

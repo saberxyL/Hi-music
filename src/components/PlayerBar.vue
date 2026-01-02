@@ -141,7 +141,7 @@ const switchMode = () => {
           </div>
 
           <el-tooltip content="播放列表" placement="top" :show-after="500">
-            <el-icon class="list-icon"><Menu /></el-icon>
+            <span class="iconfont icon-menu list-icon"></span>
           </el-tooltip>
         </div>
       </div>
