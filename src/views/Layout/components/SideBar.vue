@@ -105,8 +105,6 @@ const handleMenuSelect = index => {
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/styles/variables.scss';
-
 .sidebar {
   width: 240px;
   background: rgba(0, 0, 0, 0.3);
