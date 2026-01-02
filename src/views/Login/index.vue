@@ -78,10 +78,6 @@ const handleRegisterSuccess = () => {
 </template>
 
 <style scoped lang="scss">
-// 1. 引入所需的模块
-@use 'sass:math';
-@use 'sass:string';
-
 $count: 1000;
 $n: 5;
 $duration: 400;
@@ -104,8 +100,7 @@ $duration: 400;
     @for $i from 2 through $n {
       $res: '#{$res}, #{random(100)}vw #{random(100)}vh #fff';
     }
-    // 2. 使用 string.unquote()
-    @return string.unquote($res);
+    @return unquote($res);
   }
 
   $n: 5;
@@ -113,9 +108,8 @@ $duration: 400;
   $count: 1000;
   $zIndex: 1;
   @for $i from 1 through $n {
-    // 3. 使用 math.floor()
-    $duration: math.floor($duration / 2);
-    $count: math.floor($count / 2);
+    $duration: floor($duration / 2);
+    $count: floor($count/2);
     $zIndex: $zIndex * $i;
     .layer#{$i} {
       position: fixed;
