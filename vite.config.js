@@ -30,12 +30,12 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      port: 3000,
-      open: true,
+      port: 8080,
+      open: false,
       hmr: true,
       proxy: {
         '/api': {
-          target: 'http://localhost:4000', // 网易云API默认端口通常为3000或4000，请根据实际情况修改
+          target: 'http://localhost:3000', // 网易云API端口
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, '')
         }
@@ -48,8 +48,7 @@ export default defineConfig(({ mode }) => {
     css: {
       preprocessorOptions: {
         scss: {
-          // 统一引入全局变量等
-          additionalData: `@import "@assets/styles/resize.scss";`
+          additionalData: `@import "@assets/styles/variables.scss";`
         }
       },
       postcss: {
