@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      port: 8080,
+      port: 4000,
       open: false,
       hmr: true,
       proxy: {

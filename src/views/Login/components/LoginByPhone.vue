@@ -1,17 +1,20 @@
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { loginCellphoneApi } from '@/api/login'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { sendCaptchaApi, loginByPhoneCaptchaApi } from '@/api/login'
+import { useUserStore } from '@/stores/user.js'
 
-const router = useRouter()
-const loading = ref(false)
-const formRef = ref(null)
+const userStore = useUserStore() // 用户状态管理
+const router = useRouter() // 路由实例
+const loading = ref(false) // 提交按钮加载状态
+const formRef = ref(null) // 表单引用
+const countdown = ref(0) // 验证码倒计时
 
 // 登录表单数据
 const form = reactive({
   phone: '',
-  password: ''
+  captcha: ''
 })
 
 // 表单验证规则
@@ -20,31 +23,66 @@ const rules = {
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { min: 6, message: '验证码格式错误', trigger: 'blur' }
   ]
 }
 
+// 发送验证码
+const sendCaptcha = async () => {
+  if (countdown.value > 0) return
+
+  // 先验证手机号
+  try {
+    await formRef.value.validateField('phone')
+  } catch (e) {
+    console.error(e.message)
+    return
+  }
+
+  let timer = null
+  try {
+    const res = await sendCaptchaApi(form.phone)
+
+    if (res.status === 1) {
+      ElMessage.success('验证码已发送')
+      countdown.value = 60
+      timer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) {
+          clearInterval(timer)
+          timer = null
+        }
+      }, 1000)
+    }
+  } catch (error) {
+    ElMessage.error(error.message || '发送验证码失败')
+    console.error(error)
+  }
+}
+
+// 登录
 const handleLogin = async () => {
   if (!formRef.value) return
+
   await formRef.value.validate(async valid => {
     if (valid) {
       loading.value = true
       try {
-        const res = await loginCellphoneApi({
-          phone: form.phone,
-          password: form.password
-        })
-        console.log(res)
-        // if (res.code === 200) {
-        //   ElMessage.success('登录成功')
-        router.push('/')
-        // } else {
-        //   ElMessage.error(res.msg || '登录失败')
-        // }
+        const params = {
+          mobile: form.phone,
+          code: form.captcha
+        }
+        const res = await loginByPhoneCaptchaApi(params)
+        if (res.status === 1) {
+          ElMessage.success(`登录成功, 欢迎您，${res.data.nickname}`)
+          userStore.setToken(res.data.token)
+          userStore.setUserInfo(res.data)
+          router.push('/')
+        }
       } catch (error) {
-        ElMessage.error(error.message || '登录失败')
+        ElMessage.error(error.message || '登录失败，请稍后重试')
         console.error(error)
       } finally {
         loading.value = false
@@ -69,15 +107,22 @@ const handleLogin = async () => {
         prefix-icon="Iphone"
       />
     </el-form-item>
-    <el-form-item prop="password">
-      <el-input
-        v-model="form.password"
-        type="password"
-        placeholder="请输入密码"
-        show-password
-        prefix-icon="Lock"
-        @keyup.enter="handleLogin"
-      />
+    <el-form-item prop="captcha">
+      <div class="captcha-input-group">
+        <el-input
+          v-model="form.captcha"
+          placeholder="请输入验证码"
+          prefix-icon="Message"
+          maxlength="6"
+        />
+        <el-button
+          class="send-btn"
+          :disabled="countdown > 0"
+          @click="sendCaptcha"
+        >
+          {{ countdown > 0 ? `${countdown}s后重发` : '发送验证码' }}
+        </el-button>
+      </div>
     </el-form-item>
     <el-form-item>
       <el-button
@@ -96,6 +141,36 @@ const handleLogin = async () => {
 .login-form {
   margin-top: 10px;
   flex-grow: 1;
+}
+
+.captcha-input-group {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+
+  .el-input {
+    flex: 1;
+  }
+
+  .send-btn {
+    width: 110px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid transparent;
+    color: #333;
+
+    &:hover:not(:disabled) {
+      color: #005bea;
+      background: #fff;
+      border-color: #005bea;
+    }
+
+    &:disabled {
+      color: #999;
+      background: #f5f7fa;
+    }
+  }
 }
 
 .submit-btn {

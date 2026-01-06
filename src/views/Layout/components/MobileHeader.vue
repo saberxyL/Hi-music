@@ -28,13 +28,14 @@ const emit = defineEmits(['toggle', 'search-focus'])
   height: 60px;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
-  z-index: 200;
+  z-index: 100;
   padding: 0 16px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 
   .logo {
+    display: block;
     font-weight: bold;
     font-size: 18px;
     color: $accent-color;
@@ -45,19 +46,16 @@ const emit = defineEmits(['toggle', 'search-focus'])
     flex: 1;
     display: flex;
     justify-content: center;
-    overflow: hidden;
 
     :deep(.top-bar) {
       display: flex;
       width: 100%;
       padding: 0;
       height: 40px;
-      background: transparent;
 
       .search-bar {
         width: 100%;
         height: 36px;
-        background: rgba(255, 255, 255, 0.1);
 
         input {
           font-size: 13px;
@@ -74,6 +72,20 @@ const emit = defineEmits(['toggle', 'search-focus'])
 @media (max-width: 768px) {
   .mobile-header {
     display: flex;
+  }
+}
+@media (max-width: 440px) {
+  .mobile-header {
+    .logo {
+      display: none;
+    }
+    .header-content {
+      :deep(.top-bar) {
+        .search-bar {
+          width: 100%;
+        }
+      }
+    }
   }
 }
 </style>

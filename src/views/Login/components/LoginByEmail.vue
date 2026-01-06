@@ -1,18 +1,14 @@
 <script setup>
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { loginEmailApi } from '@/api/login'
 
-const router = useRouter()
 const loading = ref(false)
 const formRef = ref(null)
-
+// 登录表单
 const form = reactive({
   email: '',
   password: ''
 })
-
+//表单校验规则
 const rules = {
   email: [
     { required: true, message: '请输入网易邮箱', trigger: 'blur' },
@@ -22,32 +18,6 @@ const rules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
   ]
-}
-
-const handleLogin = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate(async valid => {
-    if (valid) {
-      loading.value = true
-      try {
-        const res = await loginEmailApi({
-          email: form.email,
-          password: form.password
-        })
-
-        if (res.code === 200) {
-          ElMessage.success('登录成功')
-          router.push('/')
-        } else {
-          ElMessage.error(res.msg || '登录失败')
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        loading.value = false
-      }
-    }
-  })
 }
 </script>
 
@@ -62,7 +32,7 @@ const handleLogin = async () => {
     <el-form-item prop="email">
       <el-input
         v-model="form.email"
-        placeholder="请输入网易邮箱"
+        placeholder="请输入邮箱"
         prefix-icon="Message"
       />
     </el-form-item>
@@ -73,16 +43,10 @@ const handleLogin = async () => {
         placeholder="请输入密码"
         show-password
         prefix-icon="Lock"
-        @keyup.enter="handleLogin"
       />
     </el-form-item>
     <el-form-item>
-      <el-button
-        type="primary"
-        class="submit-btn"
-        :loading="loading"
-        @click="handleLogin"
-      >
+      <el-button type="primary" class="submit-btn" :loading="loading">
         登录
       </el-button>
     </el-form-item>

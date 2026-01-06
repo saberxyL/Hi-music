@@ -1,5 +1,5 @@
 <template>
   <div>
-    <h1>推荐</h1>
+    <h1>热门歌单</h1>
   </div>
 </template>

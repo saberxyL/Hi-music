@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { allRoutes } from '@/config/menu'
+import { allRoutes, PageEnum } from '@/config/menu'
 
-// 筛选出不需要 Layout 的路由 (如登录页)
-const noLayoutRoutes = allRoutes.filter(route =>
-  ['/login'].includes(route.path)
+// 筛选出不需要 Layout 的独立路由 (Standalone, Fullscreen)
+const rootRoutes = allRoutes.filter(route =>
+  [PageEnum.STANDALONE, PageEnum.FULLSCREEN].includes(route.meta?.pageType)
 )
 
-// 筛选出需要 Layout 的路由
-const layoutChildrenRoutes = allRoutes.filter(
-  route => !['/login'].includes(route.path)
+// 筛选出需要 Layout 的路由 (Embedded, Tab)
+const layoutChildrenRoutes = allRoutes.filter(route =>
+  [PageEnum.EMBEDDED, PageEnum.TAB].includes(route.meta?.pageType)
 )
 
 export const router = createRouter({
@@ -20,7 +20,7 @@ export const router = createRouter({
       redirect: '/home',
       children: layoutChildrenRoutes
     },
-    ...noLayoutRoutes
+    ...rootRoutes
   ],
   linkExactActiveClass: 'exact-active',
   linkActiveClass: 'active'

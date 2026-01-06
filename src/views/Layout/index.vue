@@ -46,7 +46,7 @@ const toggleMobileMenu = () => {
 
     <!-- Main Content -->
     <main class="main-content">
-      <TopBar />
+      <TopBar class="top-bar" />
 
       <div class="content-scroll">
         <!-- 路由出口 -->
@@ -57,9 +57,6 @@ const toggleMobileMenu = () => {
         </router-view>
       </div>
     </main>
-
-    <!-- Player Bar (Fixed Bottom) -->
-    <PlayerBar />
   </div>
 </template>
 
@@ -68,6 +65,7 @@ const toggleMobileMenu = () => {
   display: flex;
   height: 100vh;
   width: 100vw;
+  padding-bottom: 80px;
   background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
   color: $text-primary;
   overflow: hidden;
@@ -84,7 +82,7 @@ const toggleMobileMenu = () => {
   .content-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 0 30px 100px 30px; // Bottom padding for player bar
+    padding: 0 30px 30px 30px; // Bottom padding for player bar
 
     // 隐藏滚动条但保持功能
     &::-webkit-scrollbar {
@@ -121,6 +119,10 @@ const toggleMobileMenu = () => {
 
 // Responsive
 @media (max-width: 768px) {
+  // 隐藏
+  .top-bar {
+    display: none;
+  }
   .main-content {
     padding-top: 60px; // Space for mobile header
 

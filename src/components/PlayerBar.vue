@@ -1,14 +1,49 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useMusicStore } from '@/stores/music'
+import PlayerList from './PlayerList.vue'
+import { formatTimeFromSecond } from '@/utils/time'
+import { replaceImageSize } from '@/utils/img'
+import { storeToRefs } from 'pinia'
+import player from '@/utils/player'
+import { ElMessage } from 'element-plus'
 
-// 模拟UI状态，暂时不连接真实逻辑
-const isPlaying = ref(false)
-const volume = ref(50)
-const currentTime = ref(30)
-const duration = ref(240)
-const isLiked = ref(false)
-const playMode = ref('sequence') // sequence, loop, random
-const currentLyric = ref('我听见雨滴落在青青草地') // 模拟歌词
+const musicStore = useMusicStore()
+const {
+  currentTime,
+  duration,
+  isPlaying,
+  playMode,
+  song_lyric,
+  volume,
+  currentSong,
+  currentSongUrl,
+  currentLyric,
+  curr_lyric_index
+} = storeToRefs(musicStore)
+const router = useRouter()
+
+// 监听歌曲URL变化
+watch(currentSongUrl, newUrl => {
+  // 播放新歌曲
+  if (!newUrl) return
+  player.playAudio(newUrl, true, () => {
+    musicStore.autoPlayMusic(1) // 自动播放下一首
+  })
+  musicStore.isPlaying = true
+})
+
+// 监听歌词
+watch(song_lyric, lrc => {
+  // 传入空回调，不再依赖 lyric-parser 的事件来更新歌词（改用 updateTime 统一计算）
+  player.setLyric(lrc, () => {})
+})
+
+// 监听音量
+watch(volume, val => {
+  player.setVolume(val / 100)
+})
 
 // 播放模式提示文字
 const playModeText = computed(() => {
@@ -27,26 +62,102 @@ const volumeIconClass = computed(() => {
   return 'icon-sound-2'
 })
 
-// 格式化时间
-const formatTime = time => {
-  const minutes = Math.floor(time / 60)
-  const seconds = Math.floor(time % 60)
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
+// 监听播放状态
+watch(isPlaying, val => {
+  player.setPlayState(val)
+})
 
+// 播放/暂停切换
 const togglePlay = () => {
-  isPlaying.value = !isPlaying.value
+  musicStore.isPlaying = !musicStore.isPlaying
 }
 
-const toggleLike = () => {
-  isLiked.value = !isLiked.value
-}
-
+// 切换播放模式
 const switchMode = () => {
   const modes = ['sequence', 'loop', 'random']
   const index = modes.indexOf(playMode.value)
-  playMode.value = modes[(index + 1) % modes.length]
+  musicStore.playMode = modes[(index + 1) % modes.length]
 }
+
+// 监听时间，更新音频，如果当前时间更改，就更改音频，通过操作状态管理的时间来操作音频
+watch(currentTime, val => {
+  if (isDragging.value) return
+  const audioDuration = player.duration() // 获取实际音频总时长
+  // 只有当实际音频时长有效，且明显短于歌曲总时长（例如少于10秒以上）时，才视为试听版
+
+  // console.log(
+  //   '试听结束，自动播放下一首',
+  //   currentTime.value,
+  //   audioDuration,
+  //   duration.value
+  // )
+  if (audioDuration > 0 && duration.value > audioDuration + 10) {
+    // 到达试听结束时间,自动播放下一首
+    if (player.currentTime() >= audioDuration) {
+      ElMessage.info('试听结束，该歌曲是Vip歌曲')
+      musicStore.autoPlayMusic(1)
+      return
+    }
+  }
+  // 如果是用户正在拖拽，或者时间差异极小（正常播放），则不跳转
+  if (Math.abs(player.currentTime() - val) > 1) {
+    player.seek(val)
+  }
+})
+
+const isDragging = ref(false)
+// 进度条拖动
+const onSliderInput = () => {
+  // 只用来标记正在拖拽状态
+  isDragging.value = true
+}
+
+// 拖动或者点击进度条结束
+const onSliderChange = val => {
+  isDragging.value = false
+  currentTime.value = val
+  console.log('跳转时间到：', val)
+}
+
+// 更新进度条
+const updateTime = () => {
+  // 只有在音频播放且未拖拽时，才从音频同步时间到 Store
+  if (musicStore.isPlaying && !isDragging.value) {
+    const t = player.currentTime()
+    currentTime.value = t
+    // 每一帧手动计算当前歌词行，确保绝对同步
+    // 这种方式比依赖 lyric-parser 的 setTimeout 更精准，且不会受 seek 影响
+    const lyric = player.lyric
+    if (lyric && lyric.lines && lyric.lines.length) {
+      const currentT = t * 1000 // 转为毫秒
+      const lines = lyric.lines // 歌词行数组
+      let activeIndex = -1
+      // 查找当前时间对应的最后一句歌词
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].time <= currentT) {
+          activeIndex = i
+        } else {
+          break
+        }
+      }
+
+      // 更新 Store 中的歌词索引和当前歌词文本
+      if (activeIndex !== curr_lyric_index.value) {
+        curr_lyric_index.value = activeIndex
+        if (activeIndex !== -1) {
+          currentLyric.value = lines[activeIndex].txt
+        }
+      }
+    }
+  }
+  requestAnimationFrame(updateTime)
+}
+// 初始化
+onMounted(() => {
+  updateTime()
+  // 初始化音量
+  player.setVolume(volume.value / 100)
+})
 </script>
 
 <template>
@@ -56,43 +167,41 @@ const switchMode = () => {
       <el-slider
         v-model="currentTime"
         :max="duration"
-        :show-tooltip="false"
+        :format-tooltip="formatTimeFromSecond"
+        @input="onSliderInput"
+        @change="onSliderChange"
         size="small"
         class="progress-slider"
       />
     </div>
 
-    <div class="content-wrapper">
+    <div class="content-wrapper" @click.stop="router.push('/music-player')">
       <!-- 左侧区域：歌曲信息 + 歌词 -->
       <div class="left-side">
         <div class="song-section">
           <div class="cover-wrapper" :class="{ 'is-playing': isPlaying }">
             <img
-              src="https://p1.music.126.net/5zs7IvmLv7Szq9xdhGL26Q==/109951165421200265.jpg"
+              :src="replaceImageSize(currentSong?.sizable_cover, 60)"
               alt="cover"
             />
-            <div class="cover-mask">
-              <el-icon><FullScreen /></el-icon>
+            <div class="cover-mask" @click="router.push('/music-player')">
+              <span class="iconfont icon-full-screen"></span>
             </div>
           </div>
-          <div class="info">
+          <div class="info" @click.stop>
             <div class="title-row">
-              <span class="title">夜的第七章</span>
-              <el-icon
-                class="like-btn"
-                :class="{ 'is-active': isLiked }"
-                @click="toggleLike"
-              >
-                <StarFilled v-if="isLiked" />
-                <Star v-else />
-              </el-icon>
+              <span class="title">{{
+                currentSong?.ori_audio_name || 'Hi Music'
+              }}</span>
             </div>
-            <div class="artist">周杰伦</div>
+            <div class="artist">
+              {{ currentSong?.author_name || '听见好音乐' }}
+            </div>
           </div>
         </div>
 
         <!-- 歌词区域 -->
-        <div class="lyric-section">
+        <div class="lyric-song_lyric">
           {{ currentLyric }}
         </div>
       </div>
@@ -102,7 +211,7 @@ const switchMode = () => {
         <div class="main-controls">
           <!-- 播放模式 -->
           <el-tooltip :content="playModeText" placement="top" :show-after="500">
-            <el-icon class="control-icon mode-icon" @click="switchMode">
+            <el-icon class="control-icon mode-icon" @click.stop="switchMode">
               <Refresh v-if="playMode === 'sequence'" />
               <RefreshRight v-else-if="playMode === 'loop'" />
               <Sort v-else />
@@ -110,12 +219,16 @@ const switchMode = () => {
           </el-tooltip>
 
           <!-- 上一首 -->
-          <el-icon class="control-icon prev-icon"><CaretLeft /></el-icon>
+          <el-icon
+            class="control-icon prev-icon"
+            @click.stop="musicStore.autoPlayMusic(-1)"
+            ><CaretLeft
+          /></el-icon>
 
           <!-- 播放/暂停 -->
           <div
             class="play-btn"
-            @click="togglePlay"
+            @click.stop="togglePlay"
             :class="{ 'is-active': isPlaying }"
           >
             <span v-if="isPlaying" class="iconfont icon-video-pause"></span>
@@ -123,7 +236,11 @@ const switchMode = () => {
           </div>
 
           <!-- 下一首 -->
-          <el-icon class="control-icon next-icon"><CaretRight /></el-icon>
+          <el-icon
+            class="control-icon next-icon"
+            @click.stop="musicStore.autoPlayMusic(1)"
+            ><CaretRight
+          /></el-icon>
         </div>
       </div>
 
@@ -131,9 +248,10 @@ const switchMode = () => {
       <div class="right-side">
         <div class="extra-section">
           <span class="time"
-            >{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span
+            >{{ formatTimeFromSecond(currentTime) }} /
+            {{ formatTimeFromSecond(duration) }}</span
           >
-          <div class="volume-wrapper">
+          <div class="volume-wrapper" @click.stop>
             <el-icon class="volume-icon">
               <span class="iconfont" :class="volumeIconClass"></span>
             </el-icon>
@@ -141,11 +259,18 @@ const switchMode = () => {
           </div>
 
           <el-tooltip content="播放列表" placement="top" :show-after="500">
-            <span class="iconfont icon-menu list-icon"></span>
+            <span
+              class="iconfont icon-menu list-icon"
+              @click.stop="musicStore.showPlayList = !musicStore.showPlayList"
+              :class="{ active: musicStore.showPlayList }"
+            ></span>
           </el-tooltip>
         </div>
       </div>
     </div>
+
+    <!-- 播放列表组件 -->
+    <PlayerList />
   </div>
 </template>
 
@@ -156,9 +281,6 @@ const switchMode = () => {
   left: 0;
   right: 0;
   height: 80px;
-  background: rgba(18, 18, 18, 0.95);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 500;
   user-select: none;
   display: flex;
@@ -233,7 +355,7 @@ const switchMode = () => {
   padding-right: 20px;
 }
 
-.lyric-section {
+.lyric-song_lyric {
   color: #005bea;
   font-size: 13px;
   line-height: 1.5;
@@ -306,21 +428,6 @@ const switchMode = () => {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
-      .like-btn {
-        font-size: 16px;
-        color: $text-secondary;
-        cursor: pointer;
-        transition: all 0.3s;
-
-        &:hover {
-          color: #fff;
-        }
-
-        &.is-active {
-          color: #ff4d4f;
-        }
-      }
     }
 
     .artist {
@@ -345,6 +452,10 @@ const switchMode = () => {
     gap: 24px;
 
     .control-icon {
+      height: 80px;
+      width: 32px;
+      text-align: center;
+      line-height: 80px;
       font-size: 20px;
       color: $text-secondary;
       cursor: pointer;
@@ -360,30 +471,22 @@ const switchMode = () => {
     }
 
     .play-btn {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: $btn-bg-color;
-      color: #000;
+      background: $accent-color;
+      color: #333;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 24px;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
 
       .play-icon {
-        margin-left: 2px; // 视觉修正
+        margin-left: 3px;
       }
-
-      // &:hover {
-      //   transform: scale(1.1);
-      //   background: $accent-color;
-      //   color: #fff;
-      //   box-shadow: 0 0 20px rgba(0, 198, 251, 0.4);
-      // }
-
       &:active {
         transform: scale(0.95);
       }
@@ -439,6 +542,10 @@ const switchMode = () => {
   }
 
   .list-icon {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
     font-size: 20px;
     color: $text-secondary;
     cursor: pointer;
@@ -446,6 +553,10 @@ const switchMode = () => {
     margin-left: 8px;
 
     &:hover {
+      color: $accent-color;
+    }
+
+    &.active {
       color: $accent-color;
     }
   }
@@ -479,7 +590,7 @@ const switchMode = () => {
       }
     }
 
-    .lyric-section {
+    .lyric-song_lyric {
       flex: 1;
       text-align: center;
       max-width: none;

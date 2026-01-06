@@ -14,7 +14,7 @@
     "axios": "^1.13.2",
     "element-plus": "^2.13.0",
     "howler": "^2.2.4",
-    "lrc-parser": "^1.0.1",
+    "lyric-parser": "^1.0.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "sass": "^1.97.1",

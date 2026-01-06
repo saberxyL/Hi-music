@@ -1,61 +1,63 @@
 <script setup>
 import FeaturedCard from './components/FeaturedCard.vue'
-import SongList from './components/SongList.vue'
 import PlaylistGrid from './components/PlaylistGrid.vue'
+import {
+  getEverydayRecommendApi,
+  getSpecialListApi,
+  getHomeBannerApi
+} from '@/api/recommend'
+import { ref } from 'vue'
 
-// 模拟推荐歌单数据
-const recommendPlaylists = [
-  {
-    id: 1,
-    title: '夜的第七章',
-    artist: '周杰伦',
-    cover:
-      'https://p1.music.126.net/5zs7IvmLv7Szq9xdhGL26Q==/109951165421200265.jpg'
-  },
-  {
-    id: 2,
-    title: '晴天',
-    artist: '周杰伦',
-    cover:
-      'https://p2.music.126.net/0-bTa6Y8sD5qVqJz5y5hIg==/109951165421200265.jpg'
-  },
-  {
-    id: 3,
-    title: '七里香',
-    artist: '周杰伦',
-    cover:
-      'https://p2.music.126.net/ZSSns_j_y_q_y_q_y_q_y_q==/109951165421200265.jpg'
-  },
-  {
-    id: 4,
-    title: '稻香',
-    artist: '周杰伦',
-    cover:
-      'https://p2.music.126.net/ZSSns_j_y_q_y_q_y_q_y_q==/109951165421200265.jpg'
+const bannerList = ref([])
+// 获取首页轮播
+const getHomeBanner = async () => {
+  try {
+    const res = await getHomeBannerApi()
+    bannerList.value = res.data.song_list.splice(0, 5)
+    console.log('首页轮播：', res)
+  } catch (error) {
+    console.error('获取首页轮播失败：', error)
   }
-]
+}
+getHomeBanner()
+// 获取每日推荐歌单
+const everydayRecommendList = ref([])
+const getEverydayRecommendList = async () => {
+  try {
+    const res = await getEverydayRecommendApi()
+    console.log('每日推荐：', res)
+    everydayRecommendList.value = res.data.song_list
+  } catch (error) {
+    console.error('获取每日推荐歌单失败：', error)
+  }
+}
+getEverydayRecommendList()
 
-// 模拟排行榜数据
-const topList = [
-  { id: 1, title: '夜的第七章', artist: '周杰伦', duration: '3:46' },
-  { id: 2, title: '晴天', artist: '周杰伦', duration: '4:29' },
-  { id: 3, title: '七里香', artist: '周杰伦', duration: '4:58' },
-  { id: 4, title: '稻香', artist: '周杰伦', duration: '3:43' },
-  { id: 5, title: '青花瓷', artist: '周杰伦', duration: '3:57' }
-]
+// 获取精选歌单
+const special_list = ref([])
+const getSpecialList = async () => {
+  try {
+    const res = await getSpecialListApi()
+    console.log('精选歌单：', res)
+    special_list.value = res.data.special_list
+  } catch (error) {
+    console.error('获取音乐分类失败：', error)
+  }
+}
+getSpecialList()
 </script>
 
 <template>
   <div class="home-view">
     <!-- Banner / Featured -->
-    <FeaturedCard />
+    <FeaturedCard :banners="bannerList" />
 
     <div class="dashboard-grid">
       <!-- Playlist -->
-      <SongList :songs="topList" />
+      <SongList class="song_list" height="620" :songs="everydayRecommendList" />
 
       <!-- Recommended -->
-      <PlaylistGrid :playlists="recommendPlaylists" />
+      <PlaylistGrid :playlists="special_list" />
     </div>
   </div>
 </template>
@@ -65,6 +67,7 @@ const topList = [
   width: 100%;
 
   .dashboard-grid {
+    height: 650px;
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 30px;

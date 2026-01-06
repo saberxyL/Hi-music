@@ -13,9 +13,9 @@ export const discoverMenuTree = {
     {
       id: 21,
       parent_id: null,
-      url: '/discover/recommend',
-      name: '推荐',
-      icon: 'icon-recommend',
+      url: '/discover/hot-list',
+      name: '热门歌单',
+      icon: 'icon-hot-list',
       pageType: PageEnum.EMBEDDED
     },
     {
@@ -39,7 +39,8 @@ export const systemMenuTree = {
       url: '/layout',
       name: '布局页',
       icon: 'icon-layout',
-      pageType: PageEnum.STANDALONE
+      pageType: PageEnum.STANDALONE,
+      playerShow: false
     },
     {
       id: 1,
@@ -55,7 +56,8 @@ export const systemMenuTree = {
       url: '/login',
       name: '登录',
       icon: 'icon-login',
-      pageType: PageEnum.STANDALONE
+      pageType: PageEnum.STANDALONE,
+      playerShow: false
     },
     {
       id: 3,
@@ -63,7 +65,8 @@ export const systemMenuTree = {
       url: '/settings',
       name: '设置',
       icon: 'icon-settings',
-      pageType: PageEnum.STANDALONE
+      pageType: PageEnum.STANDALONE,
+      playerShow: false
     },
     {
       id: 4,
@@ -96,7 +99,17 @@ export const systemMenuTree = {
       url: '/user-center',
       name: '个人中心',
       icon: 'icon-user-center',
-      pageType: PageEnum.STANDALONE
+      pageType: PageEnum.STANDALONE,
+      playerShow: false
+    },
+    {
+      id: 8,
+      parent_id: null,
+      url: '/music-player',
+      name: '音乐播放器',
+      icon: 'icon-music-player',
+      pageType: PageEnum.FULLSCREEN,
+      playerShow: false
     }
   ]
 }
@@ -162,7 +175,8 @@ export function generateRoutesFromList(list) {
       meta: {
         title: item.name,
         icon: item.icon,
-        pageType: item.pageType || PageEnum.EMBEDDED // 默认为 EMBEDDED
+        pageType: item.pageType || PageEnum.EMBEDDED, // 默认为 EMBEDDED
+        playerShow: item.playerShow === false ? item.playerShow : true // 默认为显示播放器
       }
     }
 

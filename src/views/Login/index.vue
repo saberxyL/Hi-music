@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import LoginByPhone from './components/LoginByPhone.vue'
 import LoginByEmail from './components/LoginByEmail.vue'
 import RegisterAccount from './components/RegisterAccount.vue'
 
+const router = useRouter()
 const isRegister = ref(false) // 控制登录/注册视图切换
 const loginType = ref('phone') // 登录方式：phone | email
 
@@ -38,6 +40,9 @@ const handleRegisterSuccess = () => {
       </div>
       <!-- Right Panel: Form -->
       <div class="right-panel">
+        <div class="close-btn" @click="router.push('/')" title="返回首页">
+          <el-icon><Close /></el-icon>
+        </div>
         <div class="form-wrapper">
           <div class="header">
             <h2 v-if="!isRegister">欢迎回来</h2>
@@ -56,12 +61,12 @@ const handleRegisterSuccess = () => {
                 <LoginByEmail />
               </el-tab-pane>
             </el-tabs>
-
+            <!--
             <div class="action-links">
-              <span class="link" @click="isRegister = true"
-                >没有账号? 立即注册</span
-              >
-            </div>
+              <span class="link" @click="isRegister = true">
+                没有账号? 立即注册
+              </span>
+            </div> -->
           </div>
 
           <!-- Register View -->
@@ -78,6 +83,9 @@ const handleRegisterSuccess = () => {
 </template>
 
 <style scoped lang="scss">
+@use 'sass:math';
+@use 'sass:string';
+
 $count: 1000;
 $n: 5;
 $duration: 400;
@@ -96,11 +104,11 @@ $duration: 400;
   );
 
   @function star($n) {
-    $res: #{random(100)}vw #{random(100)}vh #fff;
+    $res: #{math.random(100)}vw #{math.random(100)}vh #fff;
     @for $i from 2 through $n {
-      $res: '#{$res}, #{random(100)}vw #{random(100)}vh #fff';
+      $res: '#{$res}, #{math.random(100)}vw #{math.random(100)}vh #fff';
     }
-    @return unquote($res);
+    @return string.unquote($res);
   }
 
   $n: 5;
@@ -108,8 +116,8 @@ $duration: 400;
   $count: 1000;
   $zIndex: 1;
   @for $i from 1 through $n {
-    $duration: floor($duration / 2);
-    $count: floor($count/2);
+    $duration: math.floor(math.div($duration, 2));
+    $count: math.floor(math.div($count, 2));
     $zIndex: $zIndex * $i;
     .layer#{$i} {
       position: fixed;
@@ -154,6 +162,13 @@ $duration: 400;
     border: 1px solid rgba(255, 255, 255, 0.4);
     margin-left: 150px;
 
+    @media (max-width: 768px) {
+      width: 90%;
+      height: auto;
+      margin-left: 0;
+      min-height: 500px;
+    }
+
     .left-panel {
       width: 45%;
       background: rgba(10, 10, 10, 0.3);
@@ -163,6 +178,10 @@ $duration: 400;
       padding: 40px;
       justify-content: space-between;
       overflow: hidden;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
 
       // Decorative background gradient
       &::before {
@@ -254,6 +273,38 @@ $duration: 400;
       flex-direction: column;
       justify-content: center;
       background: transparent;
+      position: relative;
+
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: rgba(255, 255, 255, 0.6);
+        z-index: 10;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #fff;
+          transform: rotate(90deg);
+        }
+
+        .el-icon {
+          font-size: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        padding: 30px 20px;
+      }
 
       .form-wrapper {
         width: 100%;

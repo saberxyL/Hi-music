@@ -39,6 +39,12 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent; /* 去除移动端点击高亮 */
+    user-select: none; /* 禁止全局文本选择 */
+}
+
+/* 恢复输入框和文本域的文本选择 */
+input, textarea {
+    user-select: text;
 }
 
 ol, ul {
@@ -93,17 +99,18 @@ a {
 
 /* 单行文本溢出省略 */
 .text-ellipsis {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
 }
 
 /* 多行文本溢出省略 (2行) */
 .text-ellipsis-2 {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* 多行文本溢出省略 (3行) */

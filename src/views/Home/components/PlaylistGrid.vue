@@ -1,25 +1,35 @@
 <script setup>
-defineProps({
+import { replaceImageSize } from '@/utils/img'
+import { computed } from 'vue'
+
+const props = defineProps({
   playlists: {
     type: Array,
     default: () => []
   }
 })
+const limitPlayList = computed(() => props.playlists.slice(0, 6))
 </script>
 
 <template>
   <section class="section-block">
     <div class="section-header">
-      <h3>推荐歌单</h3>
+      <h3>精选歌单</h3>
       <span class="more">更多</span>
     </div>
     <div class="playlist-grid">
-      <div v-for="list in playlists" :key="list.id" class="playlist-card">
+      <div
+        v-for="list in limitPlayList"
+        :key="list.specialid"
+        class="playlist-card"
+      >
         <div
           class="card-cover"
-          :style="{ backgroundImage: `url(${list.cover})` }"
+          :style="{
+            backgroundImage: `url(${replaceImageSize(list?.imgurl, '400')})`
+          }"
         ></div>
-        <div class="card-title">{{ list.title }}</div>
+        <div class="card-title text-ellipsis-2">{{ list.specialname }}</div>
       </div>
     </div>
   </section>
@@ -85,6 +95,22 @@ defineProps({
       -webkit-box-orient: vertical;
       overflow: hidden;
       color: $text-primary;
+    }
+    &:last-child {
+      position: relative;
+      .card-cover {
+        filter: blur(12px);
+      }
+      &::after {
+        content: '···';
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: #ccc;
+        font-size: 60px;
+      }
     }
   }
 }
