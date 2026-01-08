@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user.js'
+// import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+// const route = useRoute()
 const userStore = useUserStore()
 const isMobileOpen = ref(false)
 
@@ -34,6 +36,7 @@ const navigateTo = path => {
       <input type="text" placeholder="搜索音乐、歌手、歌词..." />
     </div>
 
+    <!-- 用户 -->
     <div class="user-profile-area">
       <template v-if="userStore.isLogin">
         <div
@@ -54,7 +57,6 @@ const navigateTo = path => {
 
           <!-- 安全交互区域 -->
           <div class="hover-safe-area"></div>
-
           <!-- 悬浮面板 -->
           <div class="user-popover">
             <div class="popover-header-space"></div>
@@ -122,6 +124,7 @@ const navigateTo = path => {
   padding: 0 24px;
   z-index: 100;
   position: relative;
+  // border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 
   .search-bar {
     display: flex;

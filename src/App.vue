@@ -17,8 +17,8 @@ console.log('播放器显示状态:', route.meta)
         <component :is="Component" />
       </transition>
     </router-view>
-    <PlayerBar v-show="isShow" />
   </div>
+  <PlayerBar v-show="isShow" />
 </template>
 
 <style lang="scss">
@@ -30,7 +30,6 @@ body {
 .app-enter {
   width: 100vw;
   height: 100vh;
-  overflow: hidden; /* 确保容器不溢出 */
   background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
 }
 

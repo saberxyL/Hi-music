@@ -13,10 +13,20 @@ export const useMusicStore = defineStore(
     const currentLyric = ref('听见好音乐') // 当前歌词
     const curr_lyric_index = ref(0) // 当前歌词索引
     const volume = ref(0) // 音量，范围0-100
-    const song_list = ref([]) // 播放列表
+    const song_list = ref([]) // 历史播放列表
     const song_cache = ref({}) // 歌曲缓存
     const showPlayList = ref(false) // 播放列表显示状态
+    const play_list_obj = ref({
+      count: 0, // 歌单总数量不是data长度
+      data: [] // 播放列表数据
+    }) // 指定播放列表
+    const current_type = ref('history') //  播放列表默认类型 history, playList
+    const loadMoreTrigger = ref(0) // 加载更多触发器
 
+    const isNeedLoadMore = computed(() => {
+      // 提前3首判断
+      return currentSongIndex.value >= play_list_obj.value.count - 3
+    })
     // 计算属性：当前歌曲的总时长
     const duration = computed(() => {
       return currentSong.value ? currentSong.value.time_length / 1000 : 0
@@ -29,9 +39,17 @@ export const useMusicStore = defineStore(
 
     // 当前歌曲索引
     const currentSongIndex = computed(() => {
-      return song_list.value.findIndex(
-        item => item.hash === currentSong.value?.hash
-      )
+      let index = null
+      if (current_type.value === 'playList') {
+        index = play_list_obj.value.data.findIndex(
+          item => item.hash === currentSong.value?.hash
+        )
+      } else {
+        index = song_list.value.findIndex(
+          item => item.hash === currentSong.value?.hash
+        )
+      }
+      return index
     })
 
     // 获取歌曲信息
@@ -50,7 +68,7 @@ export const useMusicStore = defineStore(
           ori_audio_name: res.data[0].name.split('-')[1], // 原始歌曲名称
           time_length: res.data[0].info.duration // 歌曲时长
         }
-        addToSongList(currentSong.value) // 添加到播放列表
+        addToSongList(currentSong.value) // 添加到历史播放列表
         song_cache.value[currentSong.value.hash] = currentSong.value // 缓存歌曲信息
       } catch (error) {
         console.error('Failed to get song info:', error)
@@ -88,7 +106,10 @@ export const useMusicStore = defineStore(
     // 切换音乐 value: -1 下一首 1 上一首,注意当前播放模式
     function autoPlayMusic(value = -1) {
       let newIndex = currentSongIndex.value + value
-      const listLength = song_list.value.length // 播放列表长度
+      const listLength = // 播放列表长度
+        current_type.value === 'history'
+          ? song_list.value.length // 播放历史列表长度
+          : play_list_obj.value.count // 指定播放列表长度
 
       if (playMode.value === 'loop') {
         // 循环模式，保持当前索引不变
@@ -106,7 +127,10 @@ export const useMusicStore = defineStore(
       }
 
       // 播放新的歌曲
-      const nextSong = song_list.value[newIndex]
+      const nextSong =
+        current_type.value === 'history'
+          ? song_list.value[newIndex] // 播放历史列表中的歌曲
+          : play_list_obj.value.data[newIndex] // 指定播放列表中的歌曲
       if (nextSong) {
         switchCurrentMusic(nextSong.hash)
       }
@@ -131,12 +155,21 @@ export const useMusicStore = defineStore(
       getLyric(hash)
     }
 
-    // 添加音乐到播放列表
+    // 添加音乐到历史播放列表
     function addToSongList(song) {
       const exists = song_list.value.some(item => item.hash === song.hash)
       // 如果歌曲不存在则添加
       if (!exists) {
         song_list.value.unshift(song)
+      }
+    }
+    // 推入指定歌单
+    function setPlayList(play_obj) {
+      // 切换模式
+      current_type.value = 'playList'
+      play_list_obj.value = {
+        count: play_obj.count,
+        data: play_obj.data
       }
     }
     // 重置当前播放歌曲的状态
@@ -146,6 +179,10 @@ export const useMusicStore = defineStore(
       song_lyric.value = ''
       currentLyric.value = '听见好音乐'
       curr_lyric_index.value = 0 // 当前歌词索引
+    }
+    // 触发加载更多
+    function reqLoadMore() {
+      loadMoreTrigger.value++
     }
     return {
       currentSong,
@@ -157,19 +194,27 @@ export const useMusicStore = defineStore(
       curr_lyric_index,
       volume,
       song_list,
+      play_list_obj,
       duration,
       currentSongUrl,
+      current_type,
       currentSongIndex,
       showPlayList,
+      isNeedLoadMore,
+      loadMoreTrigger,
       getSongInfo,
       getLyric,
       switchCurrentMusic,
       autoPlayMusic,
       addToSongList,
-      resetCurrentSongState
+      setPlayList,
+      resetCurrentSongState,
+      reqLoadMore
     }
   },
   {
-    persist: true
+    persist: {
+      paths: ['currentSong', 'volume', 'song_list', 'playMode'] // 指定需要持久化的状态字段
+    }
   }
 )

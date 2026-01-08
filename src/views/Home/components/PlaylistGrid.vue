@@ -1,6 +1,7 @@
 <script setup>
 import { replaceImageSize } from '@/utils/img'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   playlists: {
@@ -8,14 +9,15 @@ const props = defineProps({
     default: () => []
   }
 })
+const router = useRouter()
 const limitPlayList = computed(() => props.playlists.slice(0, 6))
 </script>
 
 <template>
   <section class="section-block">
     <div class="section-header">
-      <h3>精选歌单</h3>
-      <span class="more">更多</span>
+      <h3>热门歌单</h3>
+      <span class="more" @click="router.push(`/discover/hot`)">更多</span>
     </div>
     <div class="playlist-grid">
       <div
@@ -29,7 +31,9 @@ const limitPlayList = computed(() => props.playlists.slice(0, 6))
             backgroundImage: `url(${replaceImageSize(list?.imgurl, '400')})`
           }"
         ></div>
-        <div class="card-title text-ellipsis-2">{{ list.specialname }}</div>
+        <div class="card-title text-ellipsis-2">
+          {{ list.specialname }}
+        </div>
       </div>
     </div>
   </section>

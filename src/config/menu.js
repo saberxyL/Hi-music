@@ -11,20 +11,41 @@ export const discoverMenuTree = {
   message: '',
   data: [
     {
-      id: 21,
+      id: 41,
       parent_id: null,
-      url: '/discover/hot-list',
-      name: '热门歌单',
-      icon: 'icon-hot-list',
+      url: '/discover/song-categories',
+      name: '歌单分类',
+      icon: 'icon-song-categories',
       pageType: PageEnum.EMBEDDED
     },
     {
-      id: 22,
+      id: 42,
+      parent_id: null,
+      url: '/discover/hot',
+      name: '热门',
+      icon: 'icon-hot',
+      pageType: PageEnum.EMBEDDED
+    },
+    {
+      id: 43,
       parent_id: null,
       url: '/discover/singer',
       name: '歌手',
       icon: 'icon-singer',
       pageType: PageEnum.EMBEDDED
+    }
+  ]
+}
+export const songlistMenuTree = {
+  message: '',
+  data: [
+    {
+      id: 91,
+      parent_id: null,
+      url: '/slist-page/detail',
+      name: '歌单详情',
+      icon: 'icon-songlist-detail',
+      pageType: PageEnum.STANDALONE
     }
   ]
 }
@@ -110,6 +131,15 @@ export const systemMenuTree = {
       icon: 'icon-music-player',
       pageType: PageEnum.FULLSCREEN,
       playerShow: false
+    },
+    {
+      id: 9,
+      parent_id: null,
+      url: '/slist-page',
+      name: '歌单独立页面',
+      icon: 'single-list-page',
+      pageType: PageEnum.STANDALONE,
+      children: songlistMenuTree.data
     }
   ]
 }
@@ -192,3 +222,4 @@ export function generateRoutesFromList(list) {
   return allRoutes
 }
 export const allRoutes = generateRoutesFromList(systemMenuTree.data)
+console.log('生成的所有路由：', allRoutes)

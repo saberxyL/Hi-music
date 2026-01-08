@@ -18,12 +18,12 @@ const emit = defineEmits(['close', 'menuClick'])
 // 图标映射
 const iconMap = {
   'icon-home': 'House',
-  'icon-login': 'SwitchButton',
   'icon-discover': 'Compass',
   'icon-toplist': 'Trophy',
-  'icon-recommend': 'Headset',
-  'icon-playlist': 'Collection',
-  'icon-artist': 'Microphone'
+  'icon-song-categories': 'Menu',
+  'icon-hot': 'Headset',
+  'icon-singer': 'User',
+  'icon-recent-play': 'Timer'
 }
 
 // 处理菜单数据

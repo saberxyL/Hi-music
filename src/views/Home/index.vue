@@ -3,7 +3,7 @@ import FeaturedCard from './components/FeaturedCard.vue'
 import PlaylistGrid from './components/PlaylistGrid.vue'
 import {
   getEverydayRecommendApi,
-  getSpecialListApi,
+  getMusicListApi,
   getHomeBannerApi
 } from '@/api/recommend'
 import { ref } from 'vue'
@@ -37,7 +37,9 @@ getEverydayRecommendList()
 const special_list = ref([])
 const getSpecialList = async () => {
   try {
-    const res = await getSpecialListApi()
+    const res = await getMusicListApi({
+      category_id: 0
+    })
     console.log('精选歌单：', res)
     special_list.value = res.data.special_list
   } catch (error) {
@@ -54,7 +56,11 @@ getSpecialList()
 
     <div class="dashboard-grid">
       <!-- Playlist -->
-      <SongList class="song_list" height="620" :songs="everydayRecommendList" />
+      <SongList
+        class="song_list"
+        :height="620"
+        :songs="everydayRecommendList"
+      />
 
       <!-- Recommended -->
       <PlaylistGrid :playlists="special_list" />
@@ -67,6 +73,7 @@ getSpecialList()
   width: 100%;
 
   .dashboard-grid {
+    max-width: 1400px;
     height: 650px;
     display: grid;
     grid-template-columns: 2fr 1fr;

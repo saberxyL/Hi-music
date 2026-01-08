@@ -208,7 +208,7 @@ onMounted(() => {
 
       <!-- 中间：播放控制 -->
       <div class="control-section">
-        <div class="main-controls">
+        <div class="main-controls" @click.stop>
           <!-- 播放模式 -->
           <el-tooltip :content="playModeText" placement="top" :show-after="500">
             <el-icon class="control-icon mode-icon" @click.stop="switchMode">
@@ -246,7 +246,7 @@ onMounted(() => {
 
       <!-- 右侧：音量与列表 -->
       <div class="right-side">
-        <div class="extra-section">
+        <div class="extra-section" @click.stop>
           <span class="time"
             >{{ formatTimeFromSecond(currentTime) }} /
             {{ formatTimeFromSecond(duration) }}</span
@@ -285,6 +285,7 @@ onMounted(() => {
   user-select: none;
   display: flex;
   flex-direction: column;
+  background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
 }
 
 .progress-bar-wrapper {
@@ -340,7 +341,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding-left: 24px;
   max-width: 1440px;
   margin: 0 auto;
   width: 100%;
@@ -442,6 +443,7 @@ onMounted(() => {
 
 /* 中间控制区 */
 .control-section {
+  height: 80px;
   flex: 0 0 auto;
   display: flex;
   justify-content: center;
@@ -452,10 +454,10 @@ onMounted(() => {
     gap: 24px;
 
     .control-icon {
-      height: 80px;
-      width: 32px;
+      height: 40px;
+      width: 40px;
       text-align: center;
-      line-height: 80px;
+      line-height: 40px;
       font-size: 20px;
       color: $text-secondary;
       cursor: pointer;
@@ -503,6 +505,8 @@ onMounted(() => {
 }
 
 .extra-section {
+  height: 80px;
+  padding-right: 24px;
   display: flex;
   align-items: center;
   justify-content: flex-end;

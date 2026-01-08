@@ -1,11 +1,22 @@
 <script setup>
 import { useMusicStore } from '@/stores/music'
 import SongList from './SongList.vue'
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted, computed } from 'vue'
 
 const musicStore = useMusicStore()
 const containerRef = ref(null)
 
+// 使用 computed 替换手动 watch，以实现数据的实时响应更新
+const listObj = computed(() => {
+  if (musicStore.current_type === 'history') {
+    return {
+      count: musicStore.song_list.length,
+      data: musicStore.song_list
+    }
+  } else {
+    return musicStore.play_list_obj
+  }
+})
 const closeList = () => {
   musicStore.showPlayList = false
 }
@@ -21,21 +32,39 @@ const handleClickOutside = event => {
   }
 }
 
+// 滚动加载防抖
+let timer = null
+const handleScroll = e => {
+  // 只在指定播放列表模式下触底加载
+  if (musicStore.current_type !== 'playList') return
+
+  const { scrollTop, scrollHeight, clientHeight } = e.target
+  // 距离底部 50px 时触发
+  if (scrollHeight - scrollTop - clientHeight < 50) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      // 触发 store 的加载更多动作
+      musicStore.reqLoadMore()
+    }, 200)
+  }
+}
+
 watch(
   () => musicStore.showPlayList,
   newVal => {
     if (newVal) {
       setTimeout(() => {
-        window.addEventListener('click', handleClickOutside)
+        // 使用 capture: true 捕获模式监听，防止其他组件阻止冒泡导致无法关闭
+        document.addEventListener('click', handleClickOutside, true)
       }, 0)
     } else {
-      window.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside, true)
     }
   }
 )
 
 onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleClickOutside, true)
 })
 </script>
 
@@ -51,18 +80,18 @@ onUnmounted(() => {
         <div class="header">
           <h3>播放队列</h3>
           <div class="sub-header">
-            <span class="count">共{{ musicStore.song_list.length }}首歌曲</span>
+            <span class="count">共{{ listObj.count }}首歌曲</span>
           </div>
         </div>
 
-        <div class="scroll-area">
+        <div class="scroll-area" @scroll="handleScroll">
           <SongList
-            height="300"
-            :songs="musicStore.song_list"
+            :scrollable="false"
+            :songs="listObj.data"
             :show-header="false"
             :isSecond="false"
           />
-          <div v-if="musicStore.song_list.length === 0" class="empty-state">
+          <div v-if="listObj.data.length === 0" class="empty-state">
             暂无播放歌曲
           </div>
         </div>
@@ -87,6 +116,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-height: 80vh; // 增加最大高度限制
 
   .header {
     padding: 24px 24px 16px;

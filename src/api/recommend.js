@@ -9,17 +9,24 @@ export const getEverydayRecommendApi = () => {
 
 /**
  * 歌单分类
+ */
+export const getCategoriesApi = () => {
+  return request({
+    url: '/playlist/tags',
+    method: 'GET'
+  })
+}
+
+/**
+ * 歌单
  * @param { Object } params - 请求参数对象
  * @param { number } params.category_id - 分类ID,必选,默认 0
  * @param { number } params.withsong - 是否包含歌曲,可选,0：不包含，1：包含，默认 0
  * @param { number } params.withtag - 是否包含分类, 可选,0：不包含，1：包含，默认 0
  * @returns {Promise} - 返回包含歌单分类的Promise对象
  */
-export const getSpecialListApi = (params = {}) => {
-  params = {
-    category_id: params.category_id || 0,
-    ...params
-  }
+export const getMusicListApi = (params = {}) => {
+  console.log('请求参数：', params)
   return request({
     url: '/top/playlist',
     method: 'GET',

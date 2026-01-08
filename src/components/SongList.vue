@@ -20,12 +20,15 @@ defineProps({
   isSecond: {
     type: Boolean,
     default: true
+  },
+  scrollable: {
+    type: Boolean,
+    default: true
   }
 })
 
 const handlePlay = (hash, toggle = false) => {
   if (toggle) {
-    // 如果是切换播放状态，则不切换歌曲
     musicStore.isPlaying = !musicStore.isPlaying
     return
   }
@@ -35,22 +38,25 @@ const handlePlay = (hash, toggle = false) => {
 </script>
 
 <template>
-  <section class="section-block" :style="`height: ${height}px`">
+  <section
+    class="section-block"
+    :style="scrollable ? `height: ${height}px;` : 'height: auto;'"
+  >
     <div class="section-header" v-if="showHeader">
       <slot>
         <h3>每日推荐</h3>
-        <!-- <span class="more">查看全部</span> -->
+        <span class="song_num">共{{ songs.length }}首</span>
       </slot>
     </div>
-    <div class="song-list">
+    <div class="song-list" :class="{ 'no-scroll': !scrollable }">
       <div
         v-for="song in songs"
         :key="song.hash"
         class="song-item"
         @click="musicStore.switchCurrentMusic(song.hash)"
       >
+        <!-- 原有内容不变 -->
         <div class="index-area">
-          <!-- 播放中显示动画 -->
           <div
             :class="{
               'playing-anim-box':
@@ -64,7 +70,6 @@ const handlePlay = (hash, toggle = false) => {
               <span class="bar"></span>
             </div>
           </div>
-          <!-- 封面 -->
           <span class="sizable-cover">
             <img :src="replaceImageSize(song.sizable_cover, 60)" alt="cover" />
           </span>
@@ -72,16 +77,18 @@ const handlePlay = (hash, toggle = false) => {
 
         <div class="song-info">
           <div
-            class="title"
-            :class="{ active: musicStore.currentMusic?.hash === song.hash }"
+            class="title text-ellipsis"
+            :class="{ active: musicStore.currentSong?.hash === song.hash }"
+            :title="song.ori_audio_name"
           >
             {{ song.ori_audio_name }}
           </div>
-          <div class="artist text-ellipsis">{{ song.author_name }}</div>
+          <div class="artist text-ellipsis" :title="song.author_name">
+            {{ song.author_name }}
+          </div>
         </div>
 
         <div class="actions" @click.stop="handlePlay(song.hash)">
-          <!-- 播放/暂停图标 -->
           <span
             class="action-icon iconfont"
             @click.stop="handlePlay(song.hash, true)"
@@ -106,8 +113,6 @@ const handlePlay = (hash, toggle = false) => {
 
 <style scoped lang="scss">
 .section-block {
-  width: 100%;
-  height: 100%;
   .section-header {
     display: flex;
     justify-content: space-between;
@@ -120,7 +125,7 @@ const handlePlay = (hash, toggle = false) => {
       color: $text-primary;
     }
 
-    .more {
+    .song_num {
       font-size: 14px;
       color: $text-secondary;
       cursor: pointer;
@@ -129,147 +134,150 @@ const handlePlay = (hash, toggle = false) => {
       }
     }
   }
-}
 
-.song-list {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 16px;
-  padding: 10px;
+  // 修复2：修正类名 + 禁用组件内滚动
+  .no-scroll {
+    overflow-y: visible !important; // 强制显示所有内容，交由父容器滚动
+    height: auto !important; // 取消高度限制
+  }
 
-  .song-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
+  .song-list {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 10px;
 
-    // 斑马纹样式：偶数行添加微弱背景
-    &:nth-child(even) {
-      background: rgba(255, 255, 255, 0.03);
-    }
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .index-area {
-      position: relative;
-      // width: 40px;
-      margin-right: 10px;
+    // 原有song-item样式不变
+    .song-item {
       display: flex;
       align-items: center;
-      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
 
-      .sizable-cover {
-        width: 40px;
-        height: 40px;
-        img {
-          width: 100%;
-          aspect-ratio: 1;
-        }
+      &:nth-child(even) {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
       }
 
-      // 播放动画样式
-      .playing-anim-box {
-        position: absolute;
-        top: 0;
-        left: 0;
+      .index-area {
+        position: relative;
+        margin-right: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: rgba(0, 0, 0, 0.3);
 
-        .playing-anim {
-          height: 16px;
-          width: 16px;
+        .sizable-cover {
+          width: 40px;
+          height: 40px;
+          img {
+            width: 100%;
+            aspect-ratio: 1;
+          }
+        }
+
+        .playing-anim-box {
+          position: absolute;
+          top: 0;
+          left: 0;
           display: flex;
-          text-align: center;
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
-          gap: 4px;
+          width: 40px;
+          height: 40px;
+          background: rgba(0, 0, 0, 0.3);
 
-          .bar {
-            width: 3px;
-            background-color: $accent-color;
-            animation: equalize 1s infinite ease-in-out;
-            border-radius: 1px;
+          .playing-anim {
+            height: 16px;
+            width: 16px;
+            display: flex;
+            text-align: center;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
 
-            &:nth-child(1) {
-              animation-delay: 0s;
-              height: 6px;
-            }
-            &:nth-child(2) {
-              animation-delay: 0.2s;
-              height: 12px;
-            }
-            &:nth-child(3) {
-              animation-delay: 0.4s;
-              height: 8px;
+            .bar {
+              width: 3px;
+              background-color: $accent-color;
+              animation: equalize 1s infinite ease-in-out;
+              border-radius: 1px;
+
+              &:nth-child(1) {
+                animation-delay: 0s;
+                height: 6px;
+              }
+              &:nth-child(2) {
+                animation-delay: 0.2s;
+                height: 12px;
+              }
+              &:nth-child(3) {
+                animation-delay: 0.4s;
+                height: 8px;
+              }
             }
           }
         }
       }
-    }
 
-    .song-info {
-      flex: 1;
+      .song-info {
+        flex: 1;
 
-      .title {
-        font-size: 15px;
-        margin-bottom: 4px;
-        color: $text-primary;
+        .title {
+          width: 200px;
+          font-size: 15px;
+          margin-bottom: 4px;
+          color: $text-primary;
 
-        &.active {
-          color: $accent-color;
+          &.active {
+            color: $accent-color;
+          }
+        }
+
+        .artist {
+          width: 200px;
+          font-size: 12px;
+          color: $text-secondary;
         }
       }
-
-      .artist {
-        width: 200px;
-        font-size: 12px;
-        color: $text-secondary;
-      }
-    }
-
-    .actions {
-      margin-right: 16px;
-      opacity: 0;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-
-      .action-icon {
-        font-size: 18px;
-        padding: 4px;
-        border-radius: 50%;
-        transition: all 0.2s;
-        color: $text-primary;
-
-        &:hover {
-          color: $accent-color;
-        }
-      }
-    }
-
-    .duration {
-      color: $text-secondary;
-      font-size: 13px;
-    }
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
 
       .actions {
-        opacity: 1;
+        margin-right: 16px;
+        opacity: 0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+
+        .action-icon {
+          font-size: 18px;
+          padding: 4px;
+          border-radius: 50%;
+          transition: all 0.2s;
+          color: $text-primary;
+
+          &:hover {
+            color: $accent-color;
+          }
+        }
+      }
+
+      .duration {
+        color: $text-secondary;
+        font-size: 13px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        .actions {
+          opacity: 1;
+        }
       }
     }
   }
@@ -292,7 +300,6 @@ const handlePlay = (hash, toggle = false) => {
     .actions {
       opacity: 1;
       margin-right: 8px;
-
       .action-icon {
         font-size: 20px;
         color: $text-secondary;
