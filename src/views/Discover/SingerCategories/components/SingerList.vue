@@ -1,8 +1,9 @@
 <script setup>
 import { replaceImageSize } from '@/utils/img'
 import { handleNum } from '@/utils/number'
+import { useRouter } from 'vue-router'
 
-defineProps({
+const props = defineProps({
   singerList: {
     type: Array,
     default: () => []
@@ -12,6 +13,8 @@ defineProps({
     default: false
   }
 })
+const router = useRouter()
+console.log('歌手列表组件收到的歌手数据:', props.singerList)
 </script>
 
 <template>
@@ -24,6 +27,7 @@ defineProps({
       v-for="singer in singerList"
       :key="singer.singerid"
       class="singer-card"
+      @click="router.push(`/singer?id=${singer.singerid}`)"
     >
       <div class="avatar-wrapper">
         <img

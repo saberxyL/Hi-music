@@ -225,12 +225,18 @@ const navigateTo = path => {
 
       // Popover container
       .user-popover {
+        background: radial-gradient(
+          circle at bottom left,
+          #1a1f35 0%,
+          #050505 100%
+        );
         position: absolute;
         top: 76px;
         right: 26px;
         width: 280px;
-        background: #252525;
+        // background: #252525;
         border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         opacity: 0;
         visibility: hidden;
@@ -241,11 +247,6 @@ const navigateTo = path => {
         pointer-events: none;
         .popover-header-space {
           height: 70px; // Space for the avatar to land
-          background: linear-gradient(
-            to bottom,
-            rgba($accent-color, 0.1),
-            transparent
-          );
         }
 
         .user-info-content {

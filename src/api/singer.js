@@ -20,3 +20,48 @@ export const getSingerListApi = (params = {}) => {
 /**
  * 获取歌手详情
  */
+
+export const getSingerDetailApi = id => {
+  return request({
+    url: '/artist/detail',
+    method: 'GET',
+    params: {
+      id
+    }
+  })
+}
+
+/**
+ * 获取歌手专辑
+ * @param { Object } params - 请求参数对象
+ * @param { number } params.id - 歌手id，必选
+ * @param { number } params.page - 页码，默认1，可选
+ * @param { number } params.pagesize - 每页数量，默认30，可选
+ * @param { string } params.sort - 排序，hot:热门, new:最新, 可选
+ */
+
+export const getSingerAlbumApi = (params = {}) => {
+  return request({
+    url: '/artist/albums',
+    method: 'GET',
+    params
+  })
+}
+
+/**
+ * 获取歌手单曲
+ * @param { Object } params - 请求参数对象
+ * @param { number } params.id - 歌手id，必选
+ * @param { number } params.page - 页码，默认1，可选
+ * @param { number } params.pagesize - 每页数量，默认30，可选
+ * @param { string } params.sort - 排序，hot:热门, new:最新, 可选
+ * @returns {Promise} - 返回包含歌手单曲的Promise对象
+ */
+
+export const getSingerSongsApi = (params = {}) => {
+  return request({
+    url: '/artist/audios',
+    method: 'GET',
+    params
+  })
+}

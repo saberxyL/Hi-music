@@ -1,6 +1,6 @@
 <script setup>
 import { getMusicListSongsApi } from '@/api/list'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useMusicStore } from '@/stores/music'
 import { useRoute } from 'vue-router'
 import PlaylistHeader from './components/PlaylistHeader.vue'
@@ -18,6 +18,8 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const PAGE_SIZE = 30
 
+const LIST_ID = route.query.id || route.params.id // 获取路由参数中的歌单ID
+
 // 获取歌单歌曲列表
 const getMusicListSongs = async (isLoadMore = false) => {
   if (isLoadMore) {
@@ -31,7 +33,7 @@ const getMusicListSongs = async (isLoadMore = false) => {
   }
   try {
     const res = await getMusicListSongsApi({
-      id: route.query.id || route.params.id, // 兼容 query 和 params
+      id: LIST_ID,
       page: page.value,
       page_size: PAGE_SIZE
     })
@@ -76,15 +78,6 @@ const getMusicListSongs = async (isLoadMore = false) => {
   }
 }
 
-// 处理滚动事件，实现上拉加载更多
-const handleScroll = e => {
-  const { scrollTop, clientHeight, scrollHeight } = e.target
-  // 距离底部 100px 时触发出发加载
-  if (scrollHeight - scrollTop - clientHeight < 100) {
-    getMusicListSongs(true)
-  }
-}
-
 // 处理歌曲数据格式
 const handleSongsData = songs => {
   return songs
@@ -100,51 +93,42 @@ const handleSongsData = songs => {
 
 // 初始加载
 getMusicListSongs()
-// 监听musicStore的播放列表加载更多需求
-watch(
-  [() => musicSotre.isNeedLoadMore, () => musicSotre.loadMoreTrigger],
-  ([newVal, newTrigger], [oldVal, oldTrigger]) => {
-    console.log(
-      '监听到播放列表加载更多需求：',
-      newVal,
-      newTrigger,
-      oldVal,
-      oldTrigger
-    )
-    // 无论是自动播放触发(newVal)还是列表滚动触发(newTrigger变化)
-    if (newVal || newTrigger !== oldTrigger) {
-      // 如果已经请求了所有歌曲，则不再请求
-      if (!hasMore.value) return
-      console.log('播放列表需要加载更多歌曲')
-      getMusicListSongs(true)
-      // 注意：getMusicListSongs内部逻辑是直接更新musicListSongs.value
-      // 我们需要在一个合适的时候更新 store。
-      // 为简单起见，这里假设 getMusicListSongs 完成后会通过下面的逻辑推送到 setPlayList
-      // 或者我们可以把 setPlayList 放在 getMusicListSongs 里？
-      // 不，原来的逻辑是先 fetch，然后下面这行代码执行时，fetch还没完？
-      // 不对，getMusicListSongs 是 async 的，但这里没 await。
-      // 所以 musicSotre.setPlayList 会立即执行，但此时 data: musicListSongs.value 还是旧的？
-      // 原来的逻辑可能有问题。getMusicListSongs(true) 是异步的。
 
-      // 让我们修复原来的逻辑问题：应该等待 fetch 完成后再 setPlayList
-    }
-  }
-)
+// 核心：注册给全局播放器调用的加载函数
+const loadMoreForStore = async () => {
+  // 可以直接调用 getMusicListSongs，因为 LIST_ID 已经被闭包捕获
+  if (loadingMore.value || !hasMore.value) return
+  await getMusicListSongs(true)
+}
+
 const handlePlayAll = () => {
   console.log('播放全部歌曲')
   musicSotre.setPlayList({
     count: musicListLength.value,
     data: musicListSongs.value
   })
+  // 注册加载更多函数到Store
+  musicSotre.setLoadMoreHandler(loadMoreForStore)
+
   // 播放第一首
   if (musicListSongs.value.length > 0) {
     musicSotre.switchCurrentMusic(musicListSongs.value[0].hash)
   }
 }
+
+const loadMore = () => {
+  getMusicListSongs(true)
+}
 </script>
 
 <template>
-  <div class="playlist-detail-container content-scroll" @scroll="handleScroll">
+  <div
+    class="playlist-detail-container content-scroll"
+    v-infinite-scroll="loadMore"
+    :infinite-scroll-disabled="loadingMore || !hasMore"
+    :infinite-scroll-distance="100"
+    :infinite-scroll-immediate="false"
+  >
     <div v-if="loading" class="loading-state">
       <el-icon class="is-loading"><Loading /></el-icon> 加载中...
     </div>
@@ -179,9 +163,11 @@ const handlePlayAll = () => {
   padding-bottom: 80px;
   max-width: 1400px;
   margin: 0 auto 80px;
+  // 移除 height: 100vh 和 overflow-y: auto，让页面自然滚动以适配 v-infinite-scroll (通常绑定在 window 或具体容器)
+  // 如果希望容器内滚动，则保留。ElementPlus的指令默认向上寻找 overflow 容器
   height: 100vh;
-  box-sizing: border-box; // 避免padding导致宽度溢出
-  overflow-y: auto; // 开启全局滚动
+  box-sizing: border-box;
+  overflow-y: auto;
 
   .loading-state {
     display: flex;

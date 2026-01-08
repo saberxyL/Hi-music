@@ -21,8 +21,8 @@ let scrollTimer = null
 // 滚动到当前歌词行
 const scrollToCurrentLine = () => {
   if (!lyricsContainerRef.value) return
-  const container = lyricsContainerRef.value
-  const activeLine = container.querySelector('.lyric-line.active')
+  const container = lyricsContainerRef.value // 获取歌词容器元素
+  const activeLine = container.querySelector('.lyric-line.active') // 当前高亮行
 
   if (activeLine) {
     // 计算滚动位置：将当前歌词固定在容器高度的 35% 处（视觉上偏上，符合阅读习惯）
@@ -31,7 +31,7 @@ const scrollToCurrentLine = () => {
     // activeLine.clientHeight / 2 是为了让歌词中心对齐目标位置
     const targetPosition = container.clientHeight * 0.35
     const scrollTop =
-      activeLine.offsetTop - targetPosition + activeLine.clientHeight / 2
+      activeLine.offsetTop - targetPosition + activeLine.clientHeight / 2 // 计算最终滚动位置
 
     container.scrollTo({
       top: scrollTop,

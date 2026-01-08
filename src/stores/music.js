@@ -21,7 +21,7 @@ export const useMusicStore = defineStore(
       data: [] // 播放列表数据
     }) // 指定播放列表
     const current_type = ref('history') //  播放列表默认类型 history, playList
-    const loadMoreTrigger = ref(0) // 加载更多触发器
+    const loadMoreHandler = ref(null) // 加载更多处理函数
 
     const isNeedLoadMore = computed(() => {
       // 提前3首判断
@@ -172,6 +172,11 @@ export const useMusicStore = defineStore(
         data: play_obj.data
       }
     }
+    // 设置加载更多处理函数
+    function setLoadMoreHandler(handler) {
+      loadMoreHandler.value = handler
+    }
+
     // 重置当前播放歌曲的状态
     function resetCurrentSongState() {
       currentSong.value = null
@@ -180,10 +185,12 @@ export const useMusicStore = defineStore(
       currentLyric.value = '听见好音乐'
       curr_lyric_index.value = 0 // 当前歌词索引
     }
+
     // 触发加载更多
-    function reqLoadMore() {
-      loadMoreTrigger.value++
+    async function reqLoadMore() {
+      await loadMoreHandler.value()
     }
+
     return {
       currentSong,
       isPlaying,
@@ -201,13 +208,13 @@ export const useMusicStore = defineStore(
       currentSongIndex,
       showPlayList,
       isNeedLoadMore,
-      loadMoreTrigger,
       getSongInfo,
       getLyric,
       switchCurrentMusic,
       autoPlayMusic,
       addToSongList,
       setPlayList,
+      setLoadMoreHandler,
       resetCurrentSongState,
       reqLoadMore
     }

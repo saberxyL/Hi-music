@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMusicStore } from '@/stores/music'
 import PlayerBar from '@/components/PlayerBar.vue'
@@ -11,6 +11,30 @@ import Lyric from 'lyric-parser'
 const router = useRouter()
 const musicStore = useMusicStore()
 const { currentSong, song_lyric } = storeToRefs(musicStore)
+
+const mainContentRef = ref(null)
+const coverStyle = ref({})
+
+const handleScroll = () => {
+  if (!mainContentRef.value) return
+  const scrollTop = mainContentRef.value.scrollTop
+  const maxScroll = 300 // 定义封面完全消失的滚动距离
+
+  if (scrollTop <= maxScroll) {
+    const scale = 1 - (scrollTop / maxScroll) * 0.4 // 缩小到 0.6
+    const opacity = 1 - (scrollTop / maxScroll) * 1
+    coverStyle.value = {
+      transform: `scale(${scale})`,
+      opacity: opacity < 0 ? 0 : opacity,
+      filter: `blur(${scrollTop / 20}px)`
+    }
+  } else {
+    coverStyle.value = {
+      transform: `scale(0.6)`,
+      opacity: 0
+    }
+  }
+}
 
 const goBack = () => {
   router.back()
@@ -43,9 +67,9 @@ const parsedLyrics = computed(() => {
     </div>
 
     <!-- 主要内容区 -->
-    <div class="main-content">
+    <div class="main-content" ref="mainContentRef" @scroll="handleScroll">
       <!-- 左侧：专辑封面 -->
-      <div class="cover-section">
+      <div class="cover-section" :style="coverStyle">
         <div class="cover-wrapper">
           <img
             :src="
@@ -182,27 +206,75 @@ const parsedLyrics = computed(() => {
 }
 
 @media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-    gap: 40px;
-    padding-top: 20px;
+  .music-player-page {
+    background: #1a1a1a;
   }
 
-  .vinyl-section {
-    width: 300px;
-    height: 300px;
-    .vinyl-wrapper {
-      width: 240px;
-      height: 240px;
+  .top-nav {
+    padding: 0 16px;
+    position: relative;
+    z-index: 20;
+    background: #1a1a1a;
+  }
+
+  .main-content {
+    flex-direction: column;
+    gap: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    display: block; // Allow scrolling
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    height: calc(100vh - 60px - 80px); // Subtract nav and player bar
+  }
+
+  .cover-section {
+    width: 100%;
+    height: 340px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    transform-origin: center center;
+    will-change: transform, opacity;
+
+    .cover-wrapper {
+      width: 260px;
+      height: 260px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background: #000;
+      transition: none;
     }
+  }
+
+  // Hide the old vinyl-section if it exists in css but not html
+  .vinyl-section {
+    display: none;
   }
 
   .lyric-section {
     width: 100%;
-    padding: 0 30px;
-    height: 300px;
-    align-items: center;
-    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    // Fill remaining view height
+    min-height: calc(100vh - 60px - 80px);
+    display: flex;
+    justify-content: center;
+    position: sticky; // Sticky positioning
+    top: 0;
+    background: #1a1a1a; // Hides the cover
+    z-index: 2;
+    overflow: hidden;
+
+    :deep(.lyrics-scroll) {
+      height: 100%;
+      width: 100%;
+    }
 
     .song-info {
       .title {

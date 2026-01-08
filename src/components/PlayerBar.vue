@@ -152,6 +152,11 @@ const updateTime = () => {
   }
   requestAnimationFrame(updateTime)
 }
+
+const showPlayListToggle = () => {
+  musicStore.showPlayList = !musicStore.showPlayList
+  console.log('切换播放列表显示状态', musicStore.showPlayList)
+}
 // 初始化
 onMounted(() => {
   updateTime()
@@ -251,7 +256,7 @@ onMounted(() => {
             >{{ formatTimeFromSecond(currentTime) }} /
             {{ formatTimeFromSecond(duration) }}</span
           >
-          <div class="volume-wrapper" @click.stop>
+          <div class="volume-wrapper">
             <el-icon class="volume-icon">
               <span class="iconfont" :class="volumeIconClass"></span>
             </el-icon>
@@ -261,7 +266,7 @@ onMounted(() => {
           <el-tooltip content="播放列表" placement="top" :show-after="500">
             <span
               class="iconfont icon-menu list-icon"
-              @click.stop="musicStore.showPlayList = !musicStore.showPlayList"
+              @click="showPlayListToggle"
               :class="{ active: musicStore.showPlayList }"
             ></span>
           </el-tooltip>
@@ -285,7 +290,8 @@ onMounted(() => {
   user-select: none;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
 }
 
 .progress-bar-wrapper {
@@ -572,59 +578,94 @@ onMounted(() => {
     height: 64px;
 
     .content-wrapper {
-      padding: 0 16px;
+      padding: 0 12px;
     }
 
     .left-side {
       gap: 10px;
-      padding-right: 10px;
+      padding-right: 0;
+      flex: 1;
+      width: 0; // Fix flex overflow
     }
 
     .song-section {
-      flex: 0 0 auto;
+      flex: 1;
       width: auto;
+      min-width: 0;
 
       .cover-wrapper {
         width: 40px;
         height: 40px;
+        flex-shrink: 0;
       }
 
+      // 显示歌曲信息
       .info {
-        display: none;
+        display: flex;
+        width: 100%;
+
+        .title-row .title {
+          font-size: 13px;
+        }
+        .artist {
+          font-size: 11px;
+        }
       }
     }
 
+    // 隐藏歌词
     .lyric-song_lyric {
-      flex: 1;
-      text-align: center;
-      max-width: none;
-      font-size: 12px;
+      display: none;
     }
 
     .control-section {
       flex: 0 0 auto;
+      margin-left: 10px;
 
       .main-controls {
-        gap: 16px;
+        gap: 15px;
 
-        // 隐藏次要按钮
-        .mode-icon,
-        .prev-icon,
-        .next-icon,
-        .lyric-icon {
-          display: none;
+        // 调整图标大小适应移动端
+        .control-icon {
+          width: auto;
+          height: auto;
+          line-height: 1;
+          font-size: 22px;
         }
 
         .play-btn {
           width: 36px;
           height: 36px;
-          font-size: 20px;
+          font-size: 16px;
+          .play-icon {
+            margin-left: 2px;
+          }
         }
       }
     }
 
+    // 显示列表按钮，隐藏音量和时间
     .right-side {
-      display: none;
+      display: flex;
+      flex: 0 0 auto;
+
+      .extra-section {
+        width: auto;
+        padding-right: 0;
+        gap: 0;
+
+        .time,
+        .volume-wrapper {
+          display: none;
+        }
+
+        .list-icon {
+          margin-left: 12px;
+          font-size: 22px;
+          width: auto;
+          height: auto;
+        }
+      }
     }
   }
 }

@@ -29,9 +29,9 @@ export const discoverMenuTree = {
     {
       id: 43,
       parent_id: null,
-      url: '/discover/singer',
+      url: '/discover/singer-categories',
       name: '歌手',
-      icon: 'icon-singer',
+      icon: 'icon-singer-categories',
       pageType: PageEnum.EMBEDDED
     }
   ]
@@ -140,6 +140,14 @@ export const systemMenuTree = {
       icon: 'single-list-page',
       pageType: PageEnum.STANDALONE,
       children: songlistMenuTree.data
+    },
+    {
+      id: 10,
+      parent_id: null,
+      url: '/singer',
+      name: '歌手详情',
+      icon: 'icon-singer',
+      pageType: PageEnum.STANDALONE
     }
   ]
 }

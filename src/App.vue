@@ -11,14 +11,16 @@ console.log('播放器显示状态:', route.meta)
 </script>
 
 <template>
-  <div class="app-enter">
-    <router-view v-slot="{ Component }">
-      <transition name="page-fade" mode="out-in">
-        <component :is="Component" />
-      </transition>
-    </router-view>
+  <div class="app-container">
+    <div class="app-enter">
+      <router-view v-slot="{ Component }">
+        <transition name="page-fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </div>
+    <PlayerBar v-show="isShow" />
   </div>
-  <PlayerBar v-show="isShow" />
 </template>
 
 <style lang="scss">
@@ -27,10 +29,12 @@ body {
   overflow: hidden; /* 禁止全局滚动条 */
 }
 
+.app-container {
+  background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
+}
 .app-enter {
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at bottom left, #1a1f35 0%, #050505 100%);
 }
 
 .page-fade-enter-active,

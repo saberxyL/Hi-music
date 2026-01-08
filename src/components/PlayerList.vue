@@ -23,6 +23,9 @@ const closeList = () => {
 
 // 点击外部区域关闭播放列表
 const handleClickOutside = event => {
+  // 排除切换按钮 (.list-icon)，防止点击图标关闭后被图标的点击事件再次打开
+  if (event.target.closest('.list-icon')) return
+
   if (
     musicStore.showPlayList &&
     containerRef.value &&
@@ -32,20 +35,17 @@ const handleClickOutside = event => {
   }
 }
 
-// 滚动加载防抖
-let timer = null
-const handleScroll = e => {
-  // 只在指定播放列表模式下触底加载
-  if (musicStore.current_type !== 'playList') return
+// 滚动加载
+const isLoading = ref(false)
 
-  const { scrollTop, scrollHeight, clientHeight } = e.target
-  // 距离底部 50px 时触发
-  if (scrollHeight - scrollTop - clientHeight < 50) {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      // 触发 store 的加载更多动作
-      musicStore.reqLoadMore()
-    }, 200)
+const triggerLoadMore = async () => {
+  if (musicStore.current_type !== 'playList' || isLoading.value) return
+
+  isLoading.value = true
+  try {
+    await musicStore.reqLoadMore()
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -84,13 +84,24 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="scroll-area" @scroll="handleScroll">
+        <div
+          class="scroll-area"
+          v-infinite-scroll="triggerLoadMore"
+          :infinite-scroll-disabled="
+            isLoading || musicStore.current_type !== 'playList'
+          "
+          :infinite-scroll-distance="50"
+          :infinite-scroll-immediate="false"
+        >
           <SongList
-            :scrollable="false"
             :songs="listObj.data"
             :show-header="false"
             :isSecond="false"
+            :scrollable="false"
           />
+          <div v-if="isLoading" class="list-loading">
+            <el-icon class="is-loading"><Loading /></el-icon> 加载中...
+          </div>
           <div v-if="listObj.data.length === 0" class="empty-state">
             暂无播放歌曲
           </div>
@@ -167,6 +178,17 @@ onUnmounted(() => {
       text-align: center;
       color: #666;
       font-size: 14px;
+    }
+
+    .list-loading {
+      padding: 10px 0;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
   }
 }
